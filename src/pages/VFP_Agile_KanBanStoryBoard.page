@@ -1,0 +1,255 @@
+<apex:page standardController="Agile_Story__c" extensions="Cls_KanBanStoryBoard" sidebar="false" standardStylesheets="false" docType="html-5.0" tabStyle="Story_Board__tab" >
+<style type="text/css">
+p.three {
+    border-style: solid;
+    border-width: 2px;
+    border-color: #98bf21;
+}
+
+div.scroll {
+    width: 1000px;
+    height: 1000px; 
+}
+
+td{padding:10px}
+body{font-size:12px;line-height:1.5}
+
+.pics, .nums
+{clear:both; text-align:center;}
+</style>
+
+<script type="text/javascript">
+    function reload(){
+      
+       window.location.reload(true);
+    }    
+
+    //function called when drag starts
+    function dragIt(theEvent) 
+    {
+     //alert('drag it');
+        //tell the browser what to drag
+            theEvent.dataTransfer.setData("Text", theEvent.target.id);    
+    }
+
+    //function called when element drops
+    function dropIt(theEvent,el) 
+    { 
+        //alert('drop it');
+        //get a reference to the element being dragged
+        var theData = theEvent.dataTransfer.getData("Text");
+        
+        //get the element
+        var theDraggedElement = document.getElementById(theData);
+        //alert(el.id);
+        
+        
+        //add it to the drop element
+        el.appendChild(theDraggedElement);
+        
+        //instruct the browser to allow the drop
+        
+         var statusvalue = document.getElementById(el.id).title;
+         
+         
+          Cls_KanBanStoryBoard.updaterequest(theData,statusvalue, function(results, event) {
+            
+        }, {escape: true});
+    
+             
+         theEvent.preventDefault();
+      
+    }                      
+</script>
+
+       
+
+    <apex:form id="formid">
+    
+             <apex:actionStatus id="actStatusId" >
+                    <apex:facet name="start">
+                    <div class="col-xs-10 col-md-8 col-sm-8">
+                    <div style="position: fixed; top: 0px; left: 0; right: 0px; bottom: 0; opacity: 0.60; z-index: 1000; background-color:#1d4367;">
+                        
+                    
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 10% 30%">
+                    
+                        
+                            <img src="{!URLFOR($Resource.AgileToolkit_LoadingImage)}" style="float: center;" />
+                            
+                        </div>    
+                      </div>  
+                    </div>
+                    </apex:facet>
+            </apex:actionStatus>
+            
+   
+   
+   
+     
+    <apex:outputpanel id="showresultsid">
+      
+      <div class="panel panel-primary">
+          <div class="panel-body" style="padding:10px;background-color: #B7D8E2;line-height:20px;">
+        
+                 <div class="row">
+                     <div class="col-xs-6 col-sm-3 col-md-4">
+                         <label>Release :</label> 
+                        <apex:selectList Value="{!selectedrelease}" size="1" title="release" multiselect="false" styleClass="form-control" id="releaseId">
+                            <apex:selectOptions value="{!release}"></apex:selectOptions> 
+                            <apex:actionSupport event="onchange"  reRender="showresultsid" />
+                        </apex:selectList>
+                       </div> 
+                      
+                      
+                      <div class="col-xs-6 col-sm-3 col-md-4">
+                          <label>Milestone :</label> 
+                        <apex:selectList Value="{!selectedMilestones}" size="1" title="milestone" multiselect="false" styleClass="form-control" id="milestoneId">
+                            <apex:selectOptions value="{!Milestones}"></apex:selectOptions> 
+                            <apex:actionSupport event="onchange"  reRender="showresultsid" />
+                          </apex:selectList>
+                      </div>  
+                       
+                      
+                     
+                       <div class="col-xs-6 col-sm-3 col-md-4">
+                           <label>Sprint :</label> 
+                        <apex:selectList Value="{!selectedSprints}" size="1" title="Sprint" multiselect="false" styleClass="form-control" id="sprintId">
+                            <apex:selectOptions value="{!Sprints}"></apex:selectOptions> 
+                            <apex:actionSupport event="onchange"  reRender="showresultsid" />
+                        </apex:selectList>
+                        </div>
+                    
+                      
+                    
+                      <br/><br/><br/><br/>
+                   
+                    
+                       
+                         <div class="col-xs-6 col-sm-3 col-md-2">
+                            <label>Release Train :</label> 
+                            <apex:selectList Value="{!selectedTrain}" size="1" title="ReleaseTrain" multiselect="false" styleClass="form-control" id="releasetrainId">
+                                <apex:selectOptions value="{!TrainValues}"></apex:selectOptions> 
+                                <apex:actionSupport event="onchange"  reRender="showresultsid" />
+                            </apex:selectList>
+                        </div>
+                        
+                        <div class="col-xs-6 col-sm-3 col-md-3">
+                            <label>Team :</label> 
+                            <apex:selectList Value="{!selectedTeam}" size="1" title="Team" multiselect="false" styleClass="form-control" id="teamstoryId">
+                                <apex:selectOptions value="{!TeamValues}"></apex:selectOptions> 
+                                <apex:actionSupport event="onchange"  reRender="showresultsid" />
+                            </apex:selectList>
+                        </div>
+                        
+                        <div class="col-xs-6 col-sm-4 col-md-5">
+                              <label>Status :</label>
+                                <apex:selectCheckboxes value="{!selectedcheckboxvaluess}"> 
+                                    <apex:selectOptions value="{!StatusValues}" />
+                                     <apex:actionSupport event="onchange"  reRender="showresultsid" />
+                                 </apex:selectCheckboxes>
+                        </div>
+                    
+                      <!--layout="pageDirection" -->
+                     
+                     <div class="col-xs-6 col-sm-3 col-md-2">
+                         <apex:commandButton action="{!searchresults}" value="Search" style="cursor:pointer;" status="actStatusId"/> &nbsp;&nbsp;&nbsp;
+                         <apex:commandButton action="{!pagereload}" onclick="reload();"  value="Reset" style="cursor:pointer;" status="actStatusId" reRender=""/>
+                        <!-- <input type="Button" class="btn btn-primary" onclick="searchresults();" value="Search"/> -->
+                       <!--  <input type="button" class="btn btn-primary"  onclick="reload();" value="Reset" style="background:green;cursor:pointer;"/> -->
+                         
+                         <!-- <apex:commandButton value="Reset" action="{!reset}" style="background-color: lightskyblue;"/>-->
+                     </div>
+                      
+                     </div>   
+                  
+                  
+                  
+          </div>
+     </div>
+      
+    </apex:outputpanel>
+    
+   
+     <apex:outputPanel rendered="{!selectedmessage}">
+       <center><strong><h4 style="color:red;">Please select a Release, Milestone, and Sprint Values for Search Results to Populate</h4></strong></center>
+    </apex:outputPanel>
+
+     <apex:outputPanel rendered="{!showinfomessage}">
+       <center><strong><h4 style="color:red;">No Records Found</h4></strong></center>
+    </apex:outputPanel>
+
+
+
+   <apex:outputPanel rendered="{!showresults}">     
+          <div class="panel-body" style="padding:5px;">
+                <center><strong><p><h3>Search Results</h3></p></strong></center>
+               <apex:repeat value="{!StatusValues}" var="s"> 
+                   <div class="col-xs-3 col-sm-3 col-lg-3" style="padding-right: 0px;padding-left: 5px;">                   
+                     <!--<div  class="panel panel-default">-->
+                        <div id="pannelId" class="panel panel-primary" style="word-wrap: break-word;padding:1px;height:2000px;">
+                                   <div class="panel-heading" style="word-wrap: break-word;padding:1px;">
+                                    <center><p>{!s.Value}</p></center>
+                                  </div>
+                          <div id="{!s.value}"  title="{!s.value}" ondrop="dropIt(event,this);" ondragover="event.preventDefault();" class="panel-body" style="background-color:#ddd;height:1950px;padding:2%;">  
+                                  <apex:repeat value="{!lrequest}" var="r">
+                                        <apex:outputPanel rendered="{!IF(r.Status__c == s.value,true,false)}" > 
+                                                <div id="{!r.Id}" draggable="true" ondragstart="dragIt(event);" >  
+                                                            <div class="card card-inverse" style="background-color: #B7D8E2; border-color: #333;border-radius: 0%; margin:2%;padding-top:1%;">
+                                                            <div class="card" style="border-color: #333; margin-left:0%;margin-top:1%;">
+                                                              <div class="card-header">
+                                                              <center>
+                   <a href="#" onclick="javascript:window.open('/{!r.ID}/e?retURL=%2F{!r.Id}','_blank','height=500,width=800,resizable=Yes');" oncomplete="reload();" reRender="formid"><strong>{!r.Name}</strong></a>
+                                                                  </center>
+                                                              
+                                                              </div>
+                                                              <div class="card-block" style="padding-bottom:25%;">
+                                                              <div calss="row">
+                                                               <div class="col-xs-6 col-sm-8 col-md-8">
+                                                               <h6 class="card-text" style="width:100%"><strong>Sprint: </strong>{!r.Sprint_Story__r.Name}</h6>
+                                                               </div>
+                                                               <div class="col-xs-6 col-sm-4 col-md-4">
+                                                               <h6 class="card-text"><strong>Points: </strong>{!r.Points__c}</h6>
+                                                               </div>
+                                                               </div>
+                                                               
+                                                               <div calss="row">
+                                                               <div class="col-xs-6 col-sm-8 col-md-8">
+                                                               <h6 class="card-text"><strong>Priority: </strong>{!r.Priority_Story__c}</h6>
+                                                               </div>
+                                                               <div class="col-xs-6 col-sm-4 col-md-4">
+                                                               <h6 class="card-text"><strong>Rank: </strong>{!r.Rank__c}</h6>
+                                                               </div>
+                                                               </div>
+                                                               
+                                                                <div calss="row">
+                                                                <div class="col-xs-8 col-sm-10 col-md-10">
+                                                                  <h6 class="card-text"><strong>Owner: </strong>{!r.Owned_By_Story__r.Name}</h6>
+                                                                </div>
+                                                                 </div>
+                                                               </div>                                                            
+                                                              
+                                                            </div>                                        
+                                                            </div>                              
+                                                    </div>
+                                            </apex:outputPanel>
+                                         </apex:repeat>
+                               </div>
+                            </div>
+                       <!-- </div>-->
+                    </div>
+                </apex:repeat>
+                
+          </div>
+  
+    </apex:outputPanel>       
+
+    </apex:form>
+
+
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.css" rel="stylesheet"/>
+      <apex:includeScript value="{!URLFOR($Resource.AgileToolkit_jquery_1_8_3_min)}"/>  
+     <apex:includeScript value="{!URLFOR($Resource.AgileToolkit_BootStrap, 'bootstrap-3.2.0-dist/js/bootstrap.min.js')}"/> 
+     <apex:stylesheet value="{!URLFOR($Resource.AgileToolkit_BootStrap, 'bootstrap-3.2.0-dist/css/bootstrap.min.css')}"/>
+</apex:page>

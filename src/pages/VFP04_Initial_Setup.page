@@ -1,0 +1,41 @@
+<!-- 
+        CREATED BY                  CREATED DATE        DESCRIRIPTION
+        Ranjeet Singh Chouhan       01/31/2013          Initial setup page, administrator must perform this initial setup to use Post Refresh Application
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                       
+        UPDATED BY                  UPDATED DATE        DESCRIPTION
+        
+-->
+
+<apex:page controller="VFC01_Post_Refresh_Tasks" tabStyle="Account">
+    
+    <apex:form id="form">
+        <!-- Page Messages -->
+        <apex:pageMessages id="messages"/>
+        
+        <apex:pageBlock title="Initial Setup">
+            <!-- Page buttons -->
+            <apex:pageBlockButtons location="both">
+                <apex:commandButton value="Done" action="{!initialSetupCompleted}"/>
+            </apex:pageBlockButtons>
+            
+            <apex:outputText value="Please perform following steps before using this application. Please note that these steps need to be performed only once. When you are done with these steps kindly press the 'Done' button to use the application." style="font-weight:bold;"/>
+            <br/><br/>
+            
+            <apex:outputText value="Step 1: Open Salesforce in another tab." style="font-weight:bold;"/>
+            <br/><br/>
+            
+            <apex:outputText value="Step 2: Go to Administration Setup area, Expand Security Controls and click on Remote Site Settings." style="font-weight:bold;"/>
+            <br/><br/>
+            
+            <apex:outputText value="Step 3: Look for Remote Site Name: RSS01_MatadataAPI and click Edit link." style="font-weight:bold;"/>
+            <br/><br/>
+            
+            <apex:outputText value="Step 4: Replace the Remote Site URL with https://{!orgNameSpacePrefix}.{!salesforceServerName}.visual.force.com" style="font-weight:bold;"/>
+            <br/><br/>
+            
+            <apex:outputText value="Step 5: Click the Save button." style="font-weight:bold;"/>
+            <br/><br/>
+            
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

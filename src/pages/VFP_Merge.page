@@ -1,0 +1,121 @@
+<!--
+    @Author      : Nandan N
+    @Name        : VFP_Merge
+    @Date        : 17/11/2013
+    @Description : Merge Page for sObjects
+--> 
+<apex:page id="mergePage" Controller="VFC_Merge" sidebar="false">
+    <style type="text/css">
+        .mergeTable{
+           border:1px solid #BFCFD4;
+           width: 100%;
+        }
+        .mergeTable td{
+            background-color:white;
+            border-bottom:1px solid #BBBBBB;
+            vertical-align:top;
+            white-space:normal;
+            padding:2px 6px;
+        }
+        .header td{
+            background-color: #D8F1F9;
+            font-weight: bold;
+        }
+        .separator td{
+            background-color: #56458C;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+    <apex:sectionHeader subtitle="Merge {!objectName}s" />
+    <apex:pageMessages id="customPageMessages"/> 
+        
+    <apex:pageBlock title="Select the values to retain" id="pblock">                        
+        <apex:pageBlockSection columns="1" id="info">
+            <apex:outputText value="Select the values that you want to retain in the merged record. The Master Record selected will retain read-only and hidden field values."/>
+            <br/><!--
+            <apex:outputText value="Note: All related records including any notes, attachments, and activities will be associated with the new merged record. "/> -->
+        </apex:pageBlockSection>
+    </apex:pageBlock>  
+    <apex:outputPanel id="contactMerge" >
+        <script>
+            function updateHiddenInput(hiddenFieldId, value,fieldName,xfr) {
+                document.getElementById(hiddenFieldId).value = value;
+                if(fieldName == '$MASTER$'){
+                	document.getElementById(xfr).disabled = true;
+                }
+            }
+            function updateXFR(hiddenFieldId, value,xfrChild) {
+                document.getElementById(hiddenFieldId).value = value;
+                if(document.getElementById(xfrChild).checked && !value){
+                	document.getElementById(xfrChild).checked = false;
+                }
+            }
+            function updateIndXFR(value,chkPanel) {
+                if(value){
+                	var elem = document.getElementsByName("chk");
+                	alert(elem.length);
+			        for (i=0;i<elem.length;i++) {
+			        	document.getElementById(elem[i].id).checked = true;
+			        }
+                }
+            }
+
+        </script>
+        <apex:outputPanel id="selectedContacts" layout="block">
+            <apex:form id="form">
+                <apex:pageBlock title="" id="pBlock">                    
+                    <apex:inputcheckbox id="xfrChild" value="{!transferChild}"/>
+                    <apex:outputLabel value="Transfer Child Records" for="xfrChild"/>
+                    <apex:outputPanel id="fieldRows">
+                        <table class="mergeTable" cellspacing="0" cellpadding="0">
+                            <tbody>
+                            <apex:repeat var="row" value="{!fieldRows}" id="repRow">
+                                <tr class="{!row.styleclass}" id="tRow">
+                                    <td width="20%" colspan="{!IF(row.styleClass == 'separator', selectedRecordsCount + 1, 1)}">
+                                        <apex:outputPanel rendered="{!row.showRadio}">
+                                            <apex:inputHidden id="winner" value="{!row.selectedValue}"/>
+                                        </apex:outputPanel>
+                                        {!row.fieldLabel}
+                                    </td>
+                                    <apex:repeat var="col" value="{!row.values}" id="repVal">
+                                        <td width="{!IF (selectedRecordsCount == 2, '40%', '16%')}">
+                                        	<apex:inputHidden id="xfr" value="{!col.xfrChild}"/>
+                                            <apex:outputPanel rendered="{!(row.fieldName != 'XFR' && row.showRadio && row.selectedValue == col.objId)}">
+                                                    <input type="radio" name="{!row.fieldName}" checked="true" onClick="updateHiddenInput('{!$Component.winner}', '{!col.objId}','{!row.fieldName}','{!$Component.xfr}');" />
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!(row.fieldName != 'XFR' && row.showRadio && row.selectedValue != col.objId)}">
+                                                    <input type="radio" name="{!row.fieldName}" onClick="updateHiddenInput('{!$Component.winner}', '{!col.objId}','{!row.fieldName}','{!$Component.xfr}');"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!(row.fieldName == 'XFR' && row.showRadio && row.selectedValue != col.objId)}" id="chkPanel">
+                                            		<input type="checkbox" id="chk" name="chk" onClick="updateXFR('{!$Component.xfr}',this.checked,'{!$Component.xfrChild}');"/>
+                                            </apex:outputPanel>
+                                            {!col.value}
+                                            <apex:outputPanel rendered="{!row.styleClass == 'header'}">
+                                                    [<apex:commandLink action="{!selectDefaultRecord}" value="Select All">
+                                                            <apex:param name="recordId" value="{!col.objId}"/>
+                                                    </apex:commandLink>]
+                                            </apex:outputPanel>
+                                        </td>
+                                    </apex:repeat>
+                                </tr>
+                            </apex:repeat>
+                            </tbody>
+                        </table>
+                    </apex:outputPanel>
+                    <apex:pageBlockButtons id="mergebutton">
+                        <apex:commandButton onClick="return confirm('Merging Records is an irreversible process.');"  action="{!mergeRecords}" value="Merge"/>
+                        <apex:commandButton oncomplete="cancel();" value="Cancel" />
+                    </apex:pageBlockButtons>
+                </apex:pageBlock>
+            </apex:form>
+        </apex:outputPanel>
+    </apex:outputPanel>
+    <script>
+        function cancel(){
+            if(confirm('Are you sure, you want cancel merge ?')){
+                location.href="/apex/VFP_DuplicateSearch";    
+            }    
+        }
+    </script>
+</apex:page>

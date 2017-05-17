@@ -1,0 +1,28 @@
+<!-- 
+        CREATED BY                  CREATED DATE        DESCRIRIPTION
+        Ranjeet Singh Chouhan       01/31/2013          Thank you page
+----------------------------------------------------------------------------------------------------------------                       
+        UPDATED BY                  UPDATED DATE        DESCRIPTION
+        
+-->
+
+<apex:page tabStyle="Account" controller="PIICaptureControllerMerge">
+    <apex:form id="form">
+        <apex:pageMessages id="messages"/>
+        <apex:actionPoller action="{!loadPiimaster}" interval="20" reRender="piidata" enabled="true"/>
+        <apex:pageBlock title="Post Sandbox Refresh Tasks Automation">
+            <apex:pageBlockSection columns="1">
+                <apex:outputText >PII Data masking status can be tracked in the below table. The schedule job and remote site settings are updated.</apex:outputText>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="PII Data Masking status " collapsible="false" columns="1" id="piidata">
+              <apex:pageBlockTable value="{!piimasterlist}" var="piidata">
+                  <apex:column value="{!piidata.Object_API_Name__c}"/> 
+                  <apex:column value="{!piidata.Field_Names__c}"/>           
+                  <apex:column value="{!piidata.PreferredDummyText__c}"/>  
+                  <apex:column value="{!piidata.Status__c}"/>  
+                  <apex:column value="{!piidata.Exception__c}"/> 
+              </apex:pageBlockTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

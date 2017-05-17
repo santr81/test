@@ -1,0 +1,49 @@
+<apex:page standardController="Agile_Sprint__c" showHeader="false" sidebar="false" extensions="BurnDown_Chart">
+<html>
+<head>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['line']}); 
+     <!-- google.charts.load('current', {'packages':['corechart']}); -->  <!-- By Niranjan-->
+      google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Day');
+      data.addColumn('number', 'Planned');
+      data.addColumn('number', 'Actuals');
+      
+      //alert("{!chartRow}");
+     // var testchartrow = ,;
+     // data.addRows([[10,0.00,null],[11,0.00,null],[12,0.00,null],[15,0.00,null],[16,0.00,null],[17,0.00,null],[18,0.00,null],[19,0.00,null],[22,0.00,null],[30,0.00,null],]);
+      data.addRows([{!chartRow}]);
+      var options = {
+        chart: {
+          title: 'Burn Down Chart',
+          subtitle: 'By Story Points'
+        },
+        width: 600,
+        height: 400,
+        vAxis: { gridlines: { count: 4 } },
+        axes: {
+          x: {
+            0: {side: 'bottom',format:'#'}
+          }
+        }               
+      };
+
+       var chart = new google.charts.Line(document.getElementById('line_top_x')); 
+     <!-- var chart = new google.visualization.LineChart(document.getElementById('curve_chart')); --> <!-- By Niranjan-->
+      console.log("data ------------{!chartRow}");
+      chart.draw(data, options);
+     
+    }
+  </script>
+</head>
+<body>
+   <div id="line_top_x"></div> 
+  <!-- <div id="curve_chart"></div>   -->    <!-- By Niranjan -->
+</body>
+</html>
+</apex:page>

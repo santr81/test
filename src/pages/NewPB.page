@@ -1,0 +1,674 @@
+<apex:page sidebar="false" showHeader="true" showChat="false" standardStylesheets="true" controller="productbacklo" id="treeviewPg" tabStyle="Sprint_Planning_Views__tab" title="Sprint Planning View">
+<apex:includeScript value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/jquery.js')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/jquery.multiselect.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/demos/assets.style.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/demos/assets.prettify.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/jquery-ui.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/jquery.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/jquery-ui.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/demos/assets/prettify.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.AgileToolkit_MulitSelectList, '/MultiSelect/src/jquery.multiselect.js')}"/> 
+   <!-- End of Javascript files -->  
+     
+<style>
+    #ccloading {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    /*right: 0;*/
+    background: #000;
+    opacity: 0.9;
+    filter: alpha(opacity=80);
+}
+#img-Id{
+    position: absolute;
+    top: 40%;
+    left: 45%;
+    margin: -28px 0 0 -25px;
+    z-index: -13;
+    width: 10%;
+}
+    
+    .btn{
+        border-color:#D1D1D1 !important;/*border-width: 1px 1px 5px 1px !important;*/border-style: solid !important;
+        /* -webkit-border-radius: 11px; -moz-border-radius: 11px;border-radius: 11px !important;*/font-size:13px;
+         padding: 7px 9px 9px 8px !important; text-decoration:none; 
+         display:inline-block;
+         /*text-shadow: 1px 1px 0 rgba(255,255,255,1) !important;*/font-weight:bold; color: #242424 !important;
+         background-color: #F8F8F8; background-image: -webkit-gradient(linear, left top, left bottom, from(#F9F9F9), to(#B0B0B0)) !important;
+         background-image: -webkit-linear-gradient(top, #F9F9F9, #B0B0B0) !important;
+         background-image: -moz-linear-gradient(top, #F9F9F9, #B0B0B0) !important;
+         background-image: -ms-linear-gradient(top, #F9F9F9, #B0B0B0) !important;
+         background-image: -o-linear-gradient(top, #F9F9F9, #B0B0B0) !important;
+        /*background-image: linear-gradient(to bottom, #F9F9F9, #1ab0ec) !important;filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#F9F9F9, endColorstr=#B0B0B0)  !important;*/
+        text-shadow: 1px 1px 0 rgb(255, 255, 255);
+        margin: 0.2% !important;
+    }
+    .ui-button-text{
+    background-image: url("{!$Resource.AgileToolkit_IMG}");
+    background-repeat: no-repeat;
+}
+    
+    /*.btn:hover{
+          border-color:#B5AEA8 !important;border-width: 1px 1px 5px 1px !important;border-style: solid;
+         background-color: #1a92c2 !important; background-image: -webkit-gradient(linear, left top, left bottom, from(#3cb0fd), to(#979797)) !important;
+         background-image: -webkit-linear-gradient(top, #E0E0E0, #979797);
+         background-image: -moz-linear-gradient(top, #E0E0E0, #979797);
+         background-image: -ms-linear-gradient(top, #E0E0E0, #979797);
+         background-image: -o-linear-gradient(top, 
+         E0E0E0, #979797);
+         background-image: linear-gradient(to bottom, #E0E0E0, #979797);filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#E0E0E0, endColorstr=#979797);
+                  }*/
+</style>
+    <div id='ccloading' style='position:fixed; z-index:99999;top:0px; width:100%;color:#FFFFFF; font-size:32px;'>
+        <center><img src='{!$Resource.AgileToolkit_LoadingIMG}' id="img-Id"/>
+        </center>
+    </div>
+  
+  
+    <apex:form id="form-Id" >
+     <apex:outputPanel id="scriptPanel">
+            <script type="text/javascript">
+            j$ = $.noConflict();
+            
+            j$(function(){
+                callBackFucntion();
+            });
+            j$(window).load(function() {
+                j$('#ccloading').hide();
+            });
+            function onChangeOfSleectList(){
+                j$('#ccloading').show();
+                dummyAF();
+                j$('#ccloading').hide();    
+            }  
+            function callBackFucntion(){
+                var clicked = false;
+                j$("select.selectOptionClass").multiselect({
+                    
+                    click: function(event, ui){
+                        var selectedDropDown=j$(this).attr('Id');
+                        if(selectedDropDown=='treeviewPg:form-Id:releases' || selectedDropDown=='treeviewPg:form-Id:milesStones'){
+                             clicked = true;
+                        }
+                    },
+                    close: function(){
+                        if(clicked){
+                            j$('#ccloading').show();
+                            dummyAF();
+                        }
+                    },
+                    checkAll: function(){
+                         var selectedDropDown=j$(this).attr('Id');
+                        if(selectedDropDown=='treeviewPg:form-Id:releases' || selectedDropDown=='treeviewPg:form-Id:milesStones'){
+                             clicked = true;
+                        }
+                       
+                    },
+                    uncheckAll: function(){
+                         var selectedDropDown=j$(this).attr('Id');
+                        if(selectedDropDown=='treeviewPg:form-Id:releases' || selectedDropDown=='treeviewPg:form-Id:milesStones'){
+                             clicked = true;
+                        }
+                    }
+                });
+            }
+            </script>
+</apex:outputPanel>
+       <apex:outputPanel id="refreshPanel">
+            <script>
+                j$("select").multiselect('refresh');
+            </script>
+       </apex:outputPanel>
+<style>
+    .multiSelectPanel td{
+        vertical-align:middle;
+    }    
+    /*body .btn {
+    background: #3498db;
+    background-image: -webkit-linear-gradient(top, #1797C0, #1797C0);
+    background-image: -moz-linear-gradient(top, #1797C0, ##1797C0);
+    background-image: -ms-linear-gradient(top, #1797C0, #1797C0);
+    background-image: -o-linear-gradient(top, #1797C0, #1797C0);
+    background-image: linear-gradient(to bottom, #1797C0, #1797C0);
+    -webkit-border-radius: 28;
+    -moz-border-radius: 28;
+    border-radius: 7px;
+    font-family: Arial;
+    color: #ffffff;
+    font-size: 15px;
+    padding: 5px 13px 5px 13px;
+    text-decoration: none;
+    }*/
+    
+   .btn:hover {
+    /* background: #3cb0fd;
+    background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+    
+    text-decoration: none;*/
+    }
+   #Filter-div{
+      background: -webkit-linear-gradient(180deg, #85DDF7 55%, #7BA0CE 97%); /* Chrome 10+, Saf5.1+ */
+      background:    -moz-linear-gradient(180deg, #85DDF7 55%, #7BA0CE 97%); /* FF3.6+ */
+      background:     -ms-linear-gradient(180deg, #85DDF7 55%, #7BA0CE 97%); /* IE10 */
+      background:      -o-linear-gradient(180deg, #85DDF7 55%, #7BA0CE 97%); /* Opera 11.10+ */
+      background:         linear-gradient(180deg, #85DDF7 55%, #7BA0CE 97%); /* W3C */
+      padding: 2% 0% 1% 0%;      
+      background: linear-gradient(180deg, #B7D8E2 55%, #B7D8E2 97%);
+      border-radius: 7px;
+      margin-top: -1.5%;
+   }
+   
+</style>
+
+
+<style>
+.modal-content {
+    background-color: #B7D8E2;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 39%; /* Could be more or less, depending on screen size */
+}
+
+.modal-header {
+    padding: 2px 16px;
+    background-color: #1797C0;
+    color: white;
+}
+.modal-footer {
+    padding: 0px 49px;
+    
+    color: white;
+}
+
+
+.button {
+    position: relative;
+    left: 14px;    
+    bottom: 16px;
+    background-color: #363DD6;
+    border: none;
+    font-size: 10px;
+    color: #FFFFFF;
+    padding: 1px;
+    width: 50px;
+    text-align: center;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    text-decoration: none;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+</style>
+
+
+    
+   <script> 
+    function reload(){
+      
+       window.location.reload(true);
+    }   
+  
+       
+ //escapes Visualforce ID for jQuery
+  function esc(myid) {
+           return '#' + myid.replace(/(:|\.)/g,'\\\\$1');
+        }
+         
+  
+    
+  //opens the dialog
+  function openDialog(dialogId){
+   j$(esc(dialogId)).dialog({title:'Filter Details', modal:true,height: 500,width:450});
+  }
+   
+  //copies value from an input to another
+  function copyHiddenFields(fromId,toId){
+   j$(esc(fromId)).val(j$(esc(toId)).val());
+  }   
+  
+
+  
+  
+
+</script>
+<style type="text/css">
+p.three {
+    border-style: solid;
+    border-width: 2px;
+    border-color: #98bf21;
+}
+
+div.scroll {
+    width: 1000px;
+    height: 1000px; 
+}
+
+td{padding:10px}
+body{font-size:12px;line-height:1.5}
+
+.pics, .nums
+{clear:both; text-align:center;}
+</style>
+
+
+ 
+<script type="text/javascript">
+    function reload(){
+      
+       window.location.reload(true);
+    }  
+    
+   
+    
+    
+
+    //function called when drag starts
+    function dragIt(theEvent) 
+    {
+     
+     //alert(theEvent.target.id);
+        //tell the browser what to drag
+            theEvent.dataTransfer.setData("Text", theEvent.target.id);  
+        
+    }
+  
+  
+
+  
+    
+
+       
+
+    //function called when element drops
+    
+    function dropIt(theEvent,el) 
+    {
+        //alert(theEvent);
+        //get a reference to the element being dragged
+        var theData = theEvent.dataTransfer.getData("Text");
+        
+        //get the element
+        var theDraggedElement = document.getElementById(theData);
+        //alert(el.Id);
+        
+        
+        //add it to the drop element
+        el.appendChild(theDraggedElement);
+        
+        //instruct the browser to allow the drop
+        
+         var statusvalue = document.getElementById(el.id).id;
+         
+         //alert(statusvalue );
+          productbacklo.updaterequest(theData,statusvalue, function(results, event) {
+            
+        }, {escape: true});
+    
+             
+         theEvent.preventDefault();
+        
+         
+         
+          }
+        
+</script>
+       
+
+    <apex:pageMessages id="msgs" />
+        <apex:panelGrid columns="1" width="100%" border="0"  captionStyle="top"  id="test-Id" > 
+            <apex:panelGroup id="panel-Id" >
+                <br />
+                <apex:outputPanel style="width:100%;" id="theComponent"> 
+                    <apex:actionFunction action="{!saveFilter}" name="doPostback" />
+                    <apex:actionFunction action="{!dummyRender}" name="dummyAF" reRender="theComponent" oncomplete="j$('#ccloading').hide();callBackFucntion();"/>
+                          
+                
+                    <!-- <apex:actionFunction name="passStringToController" action="{!savestories}" rerender="">
+                        <apex:param name="p1" value=""  />
+                     </apex:actionFunction>--> 
+                     
+
+                    
+                    
+                    <apex:inputHidden value="{!filterInst.Name}" id="inputHiddenSearchName"/>
+                    <apex:inputHidden value="{!hiddenTeamName}" id="inputHiddenTeamName"/>
+                    <apex:inputHidden value="{!hiddenTrainName}" id="inputHiddenTrainName"/>
+                    <apex:outputPanel id="__dialog3" style="display:none;">
+                        <apex:outputPanel >
+                            <table style="width:90%" >
+                                <tr>
+                                    <td valign="middle" style="width:10%">
+                                        <apex:outputLabel value="Name" style="font-weight: bold"></apex:outputLabel>
+                                    </td>
+                                    <td valign="middle" style="width:10%;padding-bottom: 2%;">
+                                        <apex:inputField id="inputText" value="{!filterInst.Name}" style="height: 136%;width: 95%;"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                       <td valign="middle" style="width:10%">
+                                        <apex:outputLabel value="Release Train" style="font-weight: bold"></apex:outputLabel>
+                                    </td>
+                                    <td valign="middle" style="width:10%;padding-bottom: 2%;">
+                                        <apex:inputField id="inputTrain" value="{!filterInst.Release_Train__c}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td valign="middle" style="width:10%">
+                                        <apex:outputLabel value="Team" style="font-weight: bold"></apex:outputLabel>
+                                    </td>
+                                    <td valign="middle" style="width:10%;padding-bottom: 2%;">
+                                        <apex:inputField id="inputTeam" value="{!filterInst.Team_ViewFilter__c}" />
+                                    </td>
+                                </tr>
+                                
+                                
+                                <tr>
+                                    <td align="center" colspan = "2" style="width:10%">
+                                       <apex:commandButton onclick="copyHiddenFields('{!$Component.inputHiddenSearchName}','{!$Component.inputText}');copyHiddenFields('{!$Component.inputHiddenTeamName}','{!$Component.inputTeam}');copyHiddenFields('{!$Component.inputHiddenTrainName}','{!$Component.inputTrain}');  doPostback(); return false;"
+                                                value="Submit"/>
+                                    </td>
+                                    
+                                </tr>
+                            </table>
+                            
+                            
+                            
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    <div id="Filter-div">
+                        <div align="center" style="margin-bottom: 1%;margin-top:-1%;">
+                            <h1 style ="font-size: 15px;text-shadow: 1px 1px 0 rgb(255, 255, 255);" align="center">{!IF(LEN(filterInst.Name)>0,filterInst.Name,'Search Filters')}</h1><br/>
+                        </div>
+                        <div align="center">
+                            <apex:outputPanel id="panelToRender">
+                                <table style="width:90%" class="multiSelectPanel" id="table">
+                                    <tr>
+                                        <td valign="middle" style="width:10% ;padding-bottom: 1%;">
+                                            <apex:outputLabel value="Release" style="font-weight: bold"></apex:outputLabel>
+                                        </td>
+                                        <td style="width:40%;padding-bottom: 1%;" id="drop-down">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedReleases}" 
+                                                             multiselect="true" id="releases" styleClass="selectOptionClass" ><!--onblur="onChangeOfSleectList();alert('calling..');"-->
+                                                <apex:selectOptions value="{!releases}" /> 
+                                                <!--<apex:actionSupport event="onchange" />-->
+                                            </apex:selectList>  
+                                        </td>
+                                        <td valign="middle" style="width:10%;padding-bottom: 1%;">
+                                            <apex:outputLabel value="Milestone" style="font-weight: bold"></apex:outputLabel>
+                                        </td >
+                                        
+                                        <td style="width:40% ;padding-bottom: 1%;">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedMilesStones}" multiselect="true" id="milesStones" styleClass="selectOptionClass" disabled="{!IF(treeViewHandshakeInstanceet.selectedReleases.size>0,'false','true')}">
+                                                <apex:selectOptions value="{!milesStones}" />
+                                            </apex:selectList>
+                                        </td>
+                                        <td valign="middle" style="width:10%;padding-bottom: 1%;">
+                                            <apex:outputLabel value="Sprint" style="font-weight: bold"></apex:outputLabel>
+                                        </td>
+                                        <td style="width:40% ;padding-bottom: 1%;">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedSprints}" multiselect="true" id="sprints" styleClass="selectOptionClass" disabled="{!IF(treeViewHandshakeInstanceet.selectedMilesStones.size>0,'false','true')}">
+                                                <apex:selectOptions value="{!sprints}" /> 
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="middle" style="width:10%;padding-bottom: 1%;">
+                                            <apex:outputLabel value="UserStory Priority" style="font-weight: bold"></apex:outputLabel>
+                                        </td>
+                                        <td style="width:40% ;padding-bottom: 1%;">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedPriority}" multiselect="true" id="priority" styleClass="selectOptionClass">
+                                                <apex:selectOptions value="{!priority}" /> 
+                                            </apex:selectList>
+                                        </td>
+                                        <td valign="middle" style="width:10% ;padding-bottom: 1%;">
+                                            <apex:outputLabel value="UserStory Status" style="font-weight: bold"></apex:outputLabel>
+                                        </td>
+                                        
+                                        <td style="width:40% ;padding-bottom: 1%;">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedStatus}" multiselect="true" id="status" styleClass="selectOptionClass">
+                                            <apex:selectOptions value="{!status}" /> 
+                                            </apex:selectList>
+                                        </td>
+                                        
+                                        <td valign="middle" style="width:10%;padding-bottom: 1%;">
+                                            <apex:outputLabel value="UserStory Owner" style="font-weight: bold"></apex:outputLabel>
+                                        </td>
+                                        <td style="width:40% ;padding-bottom: 1%;">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedOwners}" multiselect="true" id="owners" styleClass="selectOptionClass">
+                                                <apex:selectOptions value="{!owners}" /> 
+                                            </apex:selectList> 
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="middle" style="width:10% ;padding-bottom: 2%;">
+                                            <apex:outputLabel value="UserStory Release Train" style="font-weight: bold"></apex:outputLabel>
+                                        </td>
+                                        <td style="width:40% ;padding-bottom: 2%;">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedStoryReleaseTrain}" multiselect="true" id="storyReleaseTrain" styleClass="selectOptionClass">
+                                                <apex:selectOptions value="{!storyReleaseTrain}" /> 
+                                            </apex:selectList>
+                                        </td>
+                                        
+                                        <td valign="middle" style="width:10%;padding-bottom: 2%;">
+                                            <apex:outputLabel value="UserStory Team" style="font-weight: bold"></apex:outputLabel>
+                                        </td>
+                                        <td style="width:40% ;padding-bottom: 2%;">
+                                            <apex:selectList value="{!treeViewHandshakeInstanceet.selectedStoryTeam}" multiselect="true" id="storyTeam" styleClass="selectOptionClass">
+                                                <apex:selectOptions value="{!storyTeam}" /> 
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel>
+                            <div  align="center" style="width:60%;margin-top:-1%;">
+                                <apex:commandButton value="Save" title="Save filter" onClick="openDialog('{!$Component.__dialog3}'); return false;"/>
+                                <apex:commandButton value="Search"  title="Search" action="{!searchWithFilter}" id="searchFilterButton"/>
+                                
+                                
+                            </div>
+                            
+                        </div>
+                    </div>
+                </apex:outputPanel>
+                <br />
+            </apex:panelGroup>
+        <apex:panelGroup id="pid">
+       
+ 
+       <apex:outputPanel id="errorid" rendered="{!showErrortreeview}">       
+        <div class="alert alert-success" role="alert">e.getMessage()</div>
+  
+       </apex:outputPanel> 
+       
+       
+   <apex:outputPanel rendered="{!selectedmessage}">
+       <center><strong><h4 style="color:red;">Please select a Release, Milestone, and Sprint Values for Search Results to Populate</h4></strong></center>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!showinfomessage}">
+       <center><strong><h4 style="color:red;">No Records Found</h4></strong></center>
+    </apex:outputPanel>
+   
+      <apex:pageMessages ></apex:pageMessages>    
+     <apex:outputPanel id="outid" rendered="{!showtreeview}">     
+                 
+          <div class="panel-body" style="padding:5px;">
+                <center><strong><p><h3>Search Results</h3></p></strong></center>
+               <apex:repeat value="{!lSprints}" var="s" >
+           <!---<apex:outputPanel rendered="{!IF(s.value = treeViewHandshakeInstanceet.selectedSprints ,true,false)}">-->
+                      
+                   <div class="col-xs-3 col-sm-3 col-lg-3"   style="padding-right: 0px;padding-left: 5px;">                   
+                     <!--<div  class="panel panel-default">-->
+                        <div id="pannelId" class="panel panel-primary" style="word-wrap: break-word;padding:1px;height:2000px;">
+                                   <div class="panel-heading"  style="word-wrap: break-word;padding:1px; background-color: #B7D8E2;">
+                                 
+                                   
+                                    <center>
+ <a href="#" onclick="javascript:window.open('/{!s.ID}/e?retURL=%2F{!s.Id}','_blank','height=500,width=800,resizable=Yes');"  oncomplete="reload();" reRender="form-Id"><strong>{!s.Name}</strong></a>                                    
+                      
+                                    </center> 
+                                                 
+                                      </div>
+                                      
+                                 
+                          <div id="{!s.id}"  title="{!s.Name}"  ondrop="dropIt(event,this);"  ondragover="event.preventDefault();" class="panel-body" style="background-color:#ddd;height:1950px;padding:2%;" >  
+                         
+                                   <apex:repeat value="{!lrequest }" var="r">
+                                
+                                        <apex:outputPanel id="re" rendered="{!IF(s.name= r.Sprint_Story__r.Name ,true,false)}"  > 
+                                                <div id="{!r.Id}" draggable="true" ondragstart="dragIt(event);">  
+                                                            <div class="card card-inverse" style="background-color: #B7D8E2; border-color: #333;border-radius: 0%; margin:2%;padding-top:1%;">
+                                                            <div class="card" style="border-color: #333; margin-left:0%;margin-top:1%;">
+                                                              <div class="card-header">
+                                                              <center>
+                   <a href="#" onclick="javascript:window.open('/{!r.ID}/e?retURL=%2F{!r.Id}','_blank','height=500,width=800,resizable=Yes');" oncomplete="reload();" reRender="form-Id"><strong>{!r.Name}</strong></a>
+                                                                  </center>
+                                                              
+                                                              </div>
+                                                               
+                                                                <div class="card-block" style="padding-bottom:25%;">
+                                                   
+                                                             
+                                                              
+
+                                                           <!-- Edit modal -->
+  <!--<button type="button" class="button "  title="EDIT" data-toggle="modal" value="{!r.Id}" data-target="#m{!r.Id}" id="{!r.Id}" onClick="reply_click(this.id)" >EDIT</button>
+
+<div class="modal fade" id="m{!r.Id}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"  >
+  <div class="modal-dialog" role="document">
+    <div class="modal-content" >
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" >{!r.name}</h4>
+      </div>
+<div class="modal-body">
+        <div class="row">
+           <div class="col-sm-9 ">
+          <apex:outputLabel >priority:</apex:outputLabel>
+           <apex:inputField value="{!r.Priority_Story__c}"/>          
+          </div>
+       
+         <div class="col-sm-8">
+                         
+          <apex:outputLabel >points:</apex:outputLabel>
+         <apex:inputField value="{!r.Points__c}"/>       
+           
+           </div>
+       
+         <div class="col-sm-7 ">
+             <apex:outputLabel >status: </apex:outputLabel>
+          <apex:inputField value="{!r.Status__c}"/>        
+          </div>
+          
+      
+          <div class="col-xs-6 col-sm-8 col-md-8">
+        <apex:outputLabel >Progress:</apex:outputLabel>
+         <apex:inputField value="{!r.Progress__c}"/>    
+       
+          </div>
+          
+        </div>
+        
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <!---<button type="button" class="btn btn-primary" action="{!save}" value="save" >Save changes</button>---->
+      
+            <!-- <apex:commandButton action="{!savestories}" value="save" oncomplete="reload();"/> --> 
+                 
+       <!-- Here we can directly access the action function per name and assign a variable value -->
+            <!-- <apex:commandButton value="Save" onclick="passStringToController('{!r.Id}')" oncomplete="reload();"/> ---->
+
+    
+     <!--  </div>
+
+ ...
+    </div>
+  </div>
+</div>---->
+
+
+ 
+
+
+
+
+
+
+         
+                                                                                                                              
+                                                              
+                                                              <div calss="row">
+                                                               <div class="col-xs-6 col-sm-8 col-md-8">
+                                                               <h6 class="card-text"><strong>Status: </strong>{!r.Status__c}</h6>
+                                                               </div>
+                                                               
+                                                               
+                                                               
+                                                               <div class="col-xs-6 col-sm-4 col-md-4">
+                                                               <h6 class="card-text" style="Width: 35px;"><strong>Points: </strong> {!r.Points__c}
+                                                                   
+                                                                 </h6>
+                                                               </div>
+                                                               </div>
+                                                               
+                                                               <div calss="row">
+                                                               <div class="col-xs-6 col-sm-8 col-md-8">
+                                                               <h6 class="card-text"><strong>Priority: </strong>{!r.Priority_Story__c}</h6>
+                                                               
+                                                               
+                                                               </div>
+                                                               <div class="col-xs-6 col-sm-4 col-md-4">
+                                                               <h6 class="card-text"><strong>Rank: </strong>{!r.Rank__c}</h6>
+                                                               </div>
+                                                               </div>
+                                                               
+                                                            <div calss="row">
+                                                               <div class="col-xs-6 col-sm-8 col-md-8">
+                                                              <h6 class="card-text"><strong>Owner: </strong>{!r.Owned_By_Story__r.Name}</h6>
+                                                               
+                                                                </div>  
+                                                               </div>   
+                                                                                                             
+                                                               </div>                                                            
+                                                              
+                                                            </div>                                        
+                                                            </div>                              
+                                                    </div>
+                                            </apex:outputPanel>
+                           </apex:repeat>
+                                              
+              
+                                        
+                               </div>
+                               
+                               
+                            </div>
+                             
+                       <!-- </div>-->
+                  
+                    </div>
+               
+                </apex:repeat>
+                  
+          </div>
+ 
+    </apex:outputPanel> 
+    
+     
+        </apex:panelGroup>
+    </apex:panelGrid> 
+     
+    </apex:form>
+ <apex:includeScript value="{!URLFOR($Resource.AgileToolkit_BootStrap, 'bootstrap-3.2.0-dist/js/bootstrap.min.js')}"/> 
+     <apex:stylesheet value="{!URLFOR($Resource.AgileToolkit_BootStrap, 'bootstrap-3.2.0-dist/css/bootstrap.min.css')}"/>
+</apex:page>

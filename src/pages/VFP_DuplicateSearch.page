@@ -1,0 +1,314 @@
+<!-- Author       : Accenture IDC Team -->
+<!-- Created Date : 07/11/2013 -->
+<!-- Description  : This Visualforce page is used to search for PotentialDuplicate__c records, and to search for Duplicate records within the same object-->
+
+<apex:page controller="VFC_DuplicateSearch" sidebar="false" id="pageId">
+    <apex:tabPanel id="tabPanelId" selectedTab="{!selectedTab}" switchType="client">
+        <apex:tab name="dupSrch" label="Duplicate Search" id="tab1">
+            <apex:form >
+                <apex:pageMessages id="pageErrorMsg"/>
+                
+                <apex:pageBlock title="Duplicate Search Criteria" id="dupSrchBlockId">                        
+                    
+                    <apex:pageBlockButtons location="Bottom" id="btn">
+                        <apex:commandButton value="Search" action="{!search}" onclick="counter()" reRender="pageErrorMsg, resultSection" id="srchPotDupes" status="potRecSearch"/>
+                        <apex:actionStatus id="potRecSearch" startText="Searching..." />
+                    </apex:pageBlockButtons>
+                    <!-- Search Criteria Section Begins -->
+                    <apex:pageBlockSection id="srchCriteria" columns="2">
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Object Name" />
+                            <apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/> 
+                                <apex:selectList id="objectName" value="{!cont.objectName}" size="1" onchange="fetchRecordSection(this.value);">
+                                    <apex:selectOptions value="{!cont.objectOptions}" id="objectListId"/>
+                                </apex:selectList>
+                                
+                            </apex:outputPanel> 
+                        </apex:pageBlockSectionItem>
+                        
+                        <apex:pageBlockSectionItem id="recordVal">
+                        
+                            <apex:outputLabel value="Record" />                            
+                            <apex:selectList id="recId" value="{!recSelected}" size="1" style="width:200px" onclick="recSel(this.value)" >
+                                <apex:selectOptions value="{!recOptions}" id="recListId"/>
+                                <apex:actionSupport event="onchange" reRender="resultSection, pageErrorMsg"/>
+                            </apex:selectList>
+                            
+                        </apex:pageBlockSectionItem>
+                        
+                    </apex:pageBlockSection>
+                    <!-- Search Criteria Section Ends -->
+                </apex:pageBlock>
+                
+                <apex:pageBlock id="resultSection" title="Search Result">
+                    <apex:outputLabel value="Currently No Records Found !" rendered="{!NOT(display)}"/>
+                    
+                    <apex:pageBlockButtons location="bottom" rendered="{!if(potDupes.size>maxRecs,true,false)}">
+                        <apex:commandLink value="Previous" action="{!previous}" reRender="searchTable"/>&nbsp;&nbsp; | &nbsp;&nbsp;
+                        <apex:commandLink value="
+                        " action="{!next}" reRender="searchTable" /> 
+                    </apex:pageBlockButtons>
+                    
+                    <apex:pageBlockButtons location="top" rendered="{!display}" id="mergeButton">
+                        <apex:commandButton value="Merge" onclick="potMergeClick();return false;" id="mergePotRecs"/>
+                    </apex:pageBlockButtons>
+                    
+                    <apex:pageBlockSection columns="1" rendered="{!display}" id="searchTable">
+                        
+                        <apex:pageBlockTable value="{!potentialDupes}" var="potDupe" id="dupeRecordTable">                                                               
+                            <apex:column id="checkbox">
+                                <apex:inputCheckbox value="{!recordIds[potDupe]}" id="checkedOne" onchange="mrgCounter(this.checked, this.id)" />
+                            </apex:column>
+                            <apex:column headerValue="Name" value="{!potentialDupes[potDupe].Name}"/>
+                            <apex:column headerValue="Created By" value="{!potentialDupes[potDupe].CreatedById}"/>
+                            <apex:column headerValue="Duplicate Logs" value="{!potentialDupes[potDupe].DuplicateLog__c}"/>
+                            <apex:column headerValue="Rules" value="{!potentialDupes[potDupe].RulesFired__c}"/>                                             
+                        </apex:pageBlockTable> 
+                                       
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+                
+                <apex:actionFunction name="recSelVal" action="{!fetchRecords}" rerender="recordVal,resultSection,srchCriteria,pageErrorMsg" immediate="true">
+                    <apex:param assignTo="{!recSelected}" name="firstParamVal" value=""/>
+                </apex:actionFunction> 
+                <apex:actionFunction name="potMergeCall" action="{!mergeRecs}" rerender="mergeButton" />
+                <apex:actionFunction name="fetchRecordSection" action="{!fetchRecords}" rerender="recordVal,resultSection,srchCriteria,pageErrorMsg" immediate="true">
+                    <apex:param assignTo="{!objectSelected}" name="firstParam" value=""/>
+                    <apex:param assignTo="{!errorMsg}" name="secondParam" value=""/>
+                </apex:actionFunction> 
+            </apex:form>
+        </apex:tab>
+        <apex:tab name="recSrch" label="Record Search" id="tab2">
+            <apex:form >
+                <apex:pageMessages id="pageErrorMsg"/>
+                
+                <apex:pageBlock title="Duplicate Records Search Criteria" id="dupSrchBlockId">                        
+                    
+                    <apex:pageBlockButtons location="Bottom" id="btn">
+                        <apex:commandButton value="Search" action="{!searchDupe}" onclick="counter()" reRender="pageErrorMsg, searchResult" id="srch" status="recSearch"/>
+                        <apex:actionStatus id="recSearch" startText="Searching..." />
+                    </apex:pageBlockButtons>
+                    
+                    <!-- Search Criteria Section Begins -->
+                    <apex:pageBlockSection title="Search Object" id="searchCriteria" columns="1" collapsible="false">
+                        
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Object Name" />
+                            <apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/> 
+                                <apex:selectList id="objectName" value="{!cont.objectName}" size="1" style="width:260px" onchange="fetchFieldSection(this.value);">
+                                    <apex:selectOptions value="{!cont.objectOptions}" id="objectListId" />
+                                    <apex:actionSupport event="onchange" reRender="fieldSelection"/>                               
+                                </apex:selectList>                                                                                          
+                            </apex:outputPanel>                             
+                        </apex:pageBlockSectionItem>                                                                      
+                    </apex:pageBlockSection>
+                    
+                    
+                    <apex:pageBlockSection id="fieldSelection" title="Search Field" columns="3" collapsible="false" showHeader="true">
+                        <apex:dataTable value="{!listCount}"  var="i" cellpadding="5" border="0" id="comparisonTable">
+                            <apex:column headerValue="Field Name" style="width:200px">
+                                <apex:selectList id="objectName" value="{!fieldWrapList[i].fieldSelected}" size="1">
+                                    <apex:selectOptions value="{!cont.fieldList}" id="objectListId"/>
+                                    <apex:actionSupport event="onchange" reRender="pageErrorMsg"/>
+                                    <apex:param assignTo="{!errorMsg}" name="fieldChange" value="null"/>
+                                </apex:selectList> 
+                            </apex:column>
+                            
+                            <apex:column headerValue="Operator" style="width:200px">
+                                <apex:selectList value="{!fieldWrapList[i].opSelected}" size="1"  onchange="inOp(this.value)">
+                                    <apex:selectOptions value="{!operators}" id="operatorId"/> 
+                                    <apex:actionSupport event="onchange" reRender="inMsg"/>                                     
+                                </apex:selectList>                                  
+                            </apex:column>
+                            
+                            <apex:column headerValue="Comparison Value" id="comparisonVals" style="width:200px">
+                                <apex:inputText value="{!fieldWrapList[i].compVal}" />
+                                <apex:outputLabel rendered="{!fieldWrapList[i].inVal}" value="Seperate values using comma(,) OR Enter a query" id="inMsg"/>                             
+                            </apex:column>
+                            
+                            <apex:column style="width:50px" headerValue="{!if(fieldWrapList.size>1,'Logical Operator','')}" rendered="{!fieldWrapList[i].visible}">
+                                <apex:selectList value="{!fieldWrapList[i].logicOpSelected}" size="1" >
+                                    <apex:selectOptions value="{!logicOp}" />
+                                </apex:selectList>                                
+                            </apex:column>
+                            
+                            <apex:column headervalue=""  id="addCol" style="width:200px">
+                                <apex:variable value="{!i}" var="index" id="ind"/>                                                
+                                <apex:commandButton styleClass="classname" value="+" action="{!testSave}" rerender="fieldSelection,pageErrorMsg">
+                                    <apex:param assignTo="{!startCount}" name="countParam" value="{!i}"/>  
+                                </apex:commandButton>
+        
+                                <apex:commandButton action="{!removeFieldWrapper}" value=" - " reRender="fieldSelection" rendered="{!fieldWrapList.size>1}">
+                                    <apex:param name="p1" value="{!i}" assignTo="{!listIndex}"/>
+                                </apex:commandButton>
+                            </apex:column>
+                            
+                        </apex:dataTable>
+                    </apex:pageBlockSection>
+                    <!-- Search Criteria Section Ends -->
+                </apex:pageBlock>
+                
+                <apex:pageBlock id="searchResult" title="Search Result">
+                    <apex:outputLabel value="Currently No Records Found !" rendered="{!NOT(display)}"/>
+                    
+                    <apex:pageBlockButtons location="Bottom" rendered="{!if(duplicateRecords.size>maxRecs,true,false)}">
+                        <apex:commandLink value="Previous" action="{!previous}" reRender="searchTable"/>&nbsp;&nbsp; | &nbsp;&nbsp;
+                        <apex:commandLink value="Next" action="{!next}" reRender="searchTable" /> 
+                    </apex:pageBlockButtons> 
+                    
+                     <apex:pageBlockButtons location="top" rendered="{!display}" id="searchResultButtons">
+                        <apex:commandButton value="Merge" onclick="mergeClick();return false;" id="mergeRecs"/>
+                    </apex:pageBlockButtons>
+                    
+                    <apex:pageBlockSection columns="1" rendered="{!display}" id="searchTable">
+                        <apex:pageBlockTable value="{!duplicateRecordMap}" var="dupe" id="matchRecordTable">                                                               
+                            <apex:column id="checkbox">
+                                <apex:inputCheckbox value="{!recordIds[dupe]}" id="checkedOne" onchange="mrgCounter(this.checked, this.id)" />
+                            </apex:column>                            
+                            <apex:column headerValue="Record">                                
+                                <apex:outputtext value="{!duplicateRecordMap[dupe][0]}"/>
+                            </apex:column>
+                            <apex:column headerValue="Name">
+                                <apex:outputtext value="{!duplicateRecordMap[dupe][1]}"/>
+                            </apex:column>
+                            <apex:column headerValue="Created By">
+                                <apex:outputtext value="{!duplicateRecordMap[dupe][2]}"/>                                
+                            </apex:column>            
+                        </apex:pageBlockTable> 
+                                       
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+                
+                <apex:actionFunction name="mergeCall" action="{!mergeRecs}" rerender="searchResultButtons" />
+                <apex:actionFunction name="inOpVal" rerender="comparisonVals, pageErrorMsg" immediate="true">
+                    <apex:param assignTo="{!fieldWrapList[startCount].inVal}" name="paramVal" value=""/>
+                    <apex:param assignTo="{!errorMsg}" name="opChange" value=""/>
+                </apex:actionFunction>
+                <apex:actionFunction name="fetchFieldSection" action="{!init}" rerender="fieldSelection, searchResult, pageErrorMsg" immediate="true">
+                    <apex:param assignTo="{!cont.objectName}" name="firstParam" value=""/>
+                    <apex:param assignTo="{!display}" name="secondParam" value="false"/>
+                    <apex:param assignTo="{!errorMsg}" name="secondParam" value=""/>
+                </apex:actionFunction>
+                          
+            </apex:form>  
+            <script type="text/javascript">
+            var cntr;
+            var recordVal = false;
+            
+            function counter(){
+                cntr = 0;
+            }
+            
+            function inOp(val){
+                var visible = false;
+                if(val=='IN' || val=='NOT IN'){
+                    visible=true;
+                }
+                inOpVal(visible);
+            }
+            
+            function mrgCounter(val, id){
+                var selected = val;             
+                if(selected){
+                    cntr++;
+                }
+                else{
+                    cntr--;
+                }
+                if(recordVal){
+                    if(cntr == 4){
+                        alert('You cannot select anymore records for merging !');
+                    }
+                    else if(cntr > 4){
+                        alert('You cannot select more than 4 records to be merged to the selected record for search');    
+                        var elem = document.getElementById(id); 
+                        elem.checked = false; 
+                        cntr--;           
+                    } 
+                }
+                else{
+                    if(cntr == 5){
+                        alert('You cannot select anymore records for merging !');
+                    }
+                    else if(cntr > 5){
+                        alert('You cannot select more than 5 records to be merged');    
+                        var elem = document.getElementById(id); 
+                        elem.checked = false; 
+                        cntr--;           
+                    }  
+                }                           
+            }
+            
+            function mergeClick(){
+                recordVal = false;
+                if(cntr < 2){    
+                    alert('Select atleast 2 records to be merged');
+                }
+                else{
+                    mergeCall();
+                }
+            }
+            
+            function potMergeClick(){
+                if(recordVal && (cntr < 1)){
+                    alert('Select atleast 1 record to be merged to the selected record for search');
+                }
+                else if((!recordVal) && (cntr < 2)){    
+                    alert('Select atleast 2 records to be merged');
+                }
+                else{
+                    potMergeCall();
+                }
+            }
+            
+            function recSel(record){
+                if(record != ''){
+                    recordVal = true;
+                }
+                else{
+                    recordVal = false;
+                }
+                if(record=='PREVIOUS' || record=='NEXT'){
+                    recSelVal(record);
+                }
+            }
+                        
+            </script>      
+        </apex:tab>
+    </apex:tabPanel> 
+    <style type="text/css">
+        .classname {
+            -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+            -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+            box-shadow:inset 0px 1px 0px 0px #ffffff;
+            background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
+            background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
+            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+            background-color:#ededed;
+            -moz-border-radius:6px;
+            -webkit-border-radius:6px;
+            border-radius:6px;
+            border:1px solid #dcdcdc;
+            display:inline-block;
+            color:#777777;
+            font-family:arial;
+            font-size:15px;
+            font-weight:bold;
+            padding:2px 5px;
+            text-decoration:none;
+            text-shadow:1px 1px 0px #ffffff;
+        }.classname:hover {
+            background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
+            background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
+            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+            background-color:#dfdfdf;
+        }.classname:active {
+            position:relative;
+            top:1px;
+        }
+           
+    </style> 
+</apex:page>

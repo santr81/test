@@ -1,0 +1,243 @@
+<apex:page controller="VFC01_Post_Refresh_Tasks" tabStyle="Account" action="{!checkInitialSetup}" extensions="PIICaptureControllerMerge">
+    
+    <apex:form id="form">
+    
+        <apex:pageMessage severity="warning" strength="3" rendered="{!isProductionOrg}" 
+            summary="We've noticed that you are running this tool in a production/developer-edition organization. 
+            This tool is meant to be used in a sandbox organization. 
+            Please be aware that executing the post sandbox refresh tasks will modify (mask) the email addresses stored in the standard and custom objects, abort scheduled jobs and deactivate remote site settings. 
+            Click on the 'Schedule Post Refresh Tasks' button only if you are sure that you want to perform post sandbox refresh tasks in your production/developer-edition environment." />
+
+        <apex:pageMessages id="messages"/>
+        
+        <apex:actionPoller action="{!checkAsyncRequest}" interval="20" rerender="form" rendered="{!NOT(ISNULL(AsyncResult))}"/>
+        
+        <apex:actionPoller interval="20" rerender="form" rendered="{!NOT(areComponentsRetrieved)}"/>
+        
+        <apex:pageBlock title="Post Sandbox Refresh Tasks Automation">
+            <!-- Page buttons -->
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Schedule Post Refresh Tasks" action="{!confirmPostRefreshTasks}" rendered="{!areComponentsRetrieved}"/>
+            </apex:pageBlockButtons>
+            
+            <!-- Instructions Section -->
+            <apex:pageBlockSection title="Help" columns="1">
+                
+                <ul>
+                    <li><font color="green">This tool can be used by administrators to perform post sandbox refresh tasks.</font></li>
+                    <li><font color="green">When you click on this tab, the tool starts to retrieve metadata information using web service calls. This process may take some time depending on the objects and fields in the system. You will see a "Loading" text while the components are being loaded.</font></li>
+                    <li><font color="green">When all the components are loaded, you will be able to see "Schedule Post Refresh Tasks" button.</font></li>
+                    <li><font color="green">Select the components on which you want to perform post refresh tasks (e.g. Select those email fields that you want to mask).</font></li>
+                    <li><font color="green">After selecting components, you must click on "Schedule Post Refresh Tasks" button to start processing.</font></li>
+                    <li><font color="green">When you click on the "Schedule Post Refresh Tasks" button, a confirmation page will be displayed.</font></li>
+                    <li><font color="green">Confirm all the components on which you want to perform post refrsh tasks.</font></li>
+                    <li><font color="green">You can always go back by clicking on the "Cancel" button and change your selections.</font></li>
+                    <li><font color="green">Once you have confirmed all the components on which you want to perform post refresh tasks, please click on the "Confirm" button to schedule post refresh tasks.</font></li>
+                    <li><font color="green">When you click on the "Confirm" button, you will see a Thank You page.</font></li>
+                    <li><font color="green">Executing the post refresh tasks may take some time depending on the data in your organization, You will get an email confirmation once all the post refresh tasks have been completed successfully.</font></li>
+                </ul>          
+            </apex:pageBlockSection>
+            
+            <!-- Email Address Masking section -->
+          <!--  <apex:pageBlockSection title="Email Address Masking" columns="1">
+            
+                <apex:outputText value="Select email field(s) to mask:" style="font-weight:bold;"/>
+                
+                <apex:pageBlockTable value="{!emailFieldsList}" var="field">
+                    <apex:column width="40px" style="{!field.rowBGStyle}">
+                        <apex:facet name="header">
+                            <apex:inputCheckbox onclick="toggleSelectAll(this, 'emailFieldCheckbox')"/>
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!field.checked}" id="emailFieldCheckbox"/>
+                    </apex:column> 
+                    
+                    <apex:column headerValue="Object Name" style="{!field.rowBGStyle}">
+                        <apex:outputText value="{!field.objectName}" />
+                    </apex:column>
+                    
+                    <apex:column headerValue="Field Label" style="{!field.rowBGStyle}">
+                        <apex:outputText value="{!field.label}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Field API Name" style="{!field.rowBGStyle}">
+                        <apex:outputText value="{!field.apiName}"/>
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+                <apex:outputText value="No records found !" rendered="{!if(emailFieldsCount == 0 && areComponentsRetrieved, true, false)}"/>
+                
+                <apex:outputPanel rendered="{!if(emailFieldsCount > 0 && areComponentsRetrieved, true, false)}">
+                    <apex:selectRadio value="{!replaceOrSuffix}">
+                        <apex:selectOption itemValue="suffix" itemLabel="Suffix all email addresses with" />
+                        <apex:selectOption itemValue="replace" itemLabel="Replace all email addresses with" />
+                    </apex:selectRadio>
+                    <apex:inputText value="{!emailAddressSuffix}"/>
+                    
+                </apex:outputPanel>
+                
+            </apex:pageBlockSection> -->
+            
+        <apex:actionFunction name="loadPIIMaster"  action="{!loadPiimaster}" reRender="piidata" status="Loading"/><br/>
+        <apex:actionFunction name="changeinobject"  action="{!getAllFields}" reRender="msgs,fieldchoiceblock" status="Loading"/><br/>
+       <!-- <apex:actionPoller action="{!checkJobsStatus}" id="poller" interval="5" reRender="blocktable" enabled="{!polleractive}"/> -->
+        <apex:actionStatus id="Loading">
+            <apex:facet name="start">
+                <apex:outputPanel >
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: lightgray;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 30% 50%">
+                    <img src="/img/loading32.gif" width="25" height="25" />
+                    <apex:outputLabel value="Loading..."/>
+                </div>  
+                </apex:outputPanel>            
+            </apex:facet>
+        </apex:actionStatus>
+        <apex:outputPanel id="msgs">
+            <apex:pagemessages ></apex:pagemessages>
+        </apex:outputPanel>
+        <apex:pageBlockSection title="PII Data masking" id="PiiList" columns="1" collapsible="true">
+            <apex:pageBlockSection title="Step 1: Choose the object" columns="1" collapsible="false">
+                <apex:selectList value="{!AllObjectsList}" size="1" onchange="changeinobject()" label="Choose Object :">
+                    <apex:selectOptions value="{!AllObjects}"/>
+                </apex:selectList>
+             </apex:pageBlockSection>
+            <apex:pageBlockSection id="fieldchoiceblock" title="Step 2: Select PII Feilds in {!AllObjectsList} Object " collapsible="false" columns="1">
+                <apex:panelGrid columns="3" id="fieldChoiceGroup">
+                    <apex:selectList id="CorresFields" value="{!CorrespondingFields}" multiselect="true" style="width:250px" size="10" label="Available Fields: ">
+                        <apex:selectOptions value="{!fieldNames}" />
+                    </apex:selectList>
+                    <apex:panelGroup >
+                        <br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<apex:commandButton value=">" action="{!selectclick}" reRender="fieldChoiceGroup"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <br/><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<apex:commandButton value="<" action="{!unselectclick}" reRender="fieldChoiceGroup"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </apex:panelGroup>
+                    <apex:selectList id="SelectedFields" value="{!rightselected}" multiselect="true" style="width:250px" size="10" label="Selected fields: ">
+                        <apex:selectOptions value="{!SelectedValues}" />
+                    </apex:selectList><br/><br/>
+                    <apex:commandButton value="Add to List" action="{!addfieldstothelist}" reRender="maskdata"/>
+                </apex:panelGrid>
+             </apex:pageBlockSection>
+        <apex:outputPanel id="maskdata">
+            <apex:pageBlockSection title="Step 3: Add Masking text " collapsible="false" columns="2">
+                <apex:repeat value="{!objfieldmap}" var="key">
+                    <apex:outputText value="{!key}" label="Object Name: "/>
+                    <apex:outputText />
+                    <apex:repeat value="{!objfieldmap[key]}" var="fieldmasktextmapkey">
+                        <apex:repeat value="{!objfieldmap[key][fieldmasktextmapkey]}" var="keyfield">
+                                <apex:outputText value="{!fieldmasktextmapkey}" label="FieldName"/>
+                                <apex:inputText value="{!objfieldmap[key][fieldmasktextmapkey]}" label="Masking Text"/>
+                        </apex:repeat>
+                    </apex:repeat>
+                </apex:repeat>
+                <apex:commandButton value="Save" action="{!savePIIMaster}"/>
+            </apex:pageBlockSection>
+        </apex:outputPanel> 
+          <apex:pageBlockSection title="Step 4: Verfiy PII data config " collapsible="false" columns="1" id="piidata">
+              <apex:pageBlockTable value="{!piimasterlist}" var="piidata">
+                  <apex:column value="{!piidata.Object_API_Name__c}"/> 
+                  <apex:column value="{!piidata.Field_Names__c}"/>           
+                  <apex:column value="{!piidata.PreferredDummyText__c}"/>  
+              <!--    <apex:column value="{!piidata.Status__c}"/>  
+                  <apex:column value="{!piidata.Exception__c}"/> 
+                  <apex:column >
+                      <apex:commandButton value="Update" action="{!doUpdate}" reRender="poller,blocktable,msgs"  status="Loading">
+                          <apex:param id="Objectapiname" name="Objectapiname" value="{!piidata.Object_API_Name__c}"/>
+                      </apex:commandButton>
+                  </apex:column> -->
+              </apex:pageBlockTable>
+            </apex:pageBlockSection>  
+         <!-- <apex:pageBlockButtons > 
+                  <apex:commandButton value="Update All" action="{!doUpdateAll}" status="Loading" reRender="poller,blocktable,msgs"/>
+              </apex:pageBlockButtons> -->
+      </apex:pageBlockSection>  
+            
+            <apex:outputPanel rendered="{!NOT(areComponentsRetrieved)}">
+                <center><img src="/img/loading.gif"/> <font color="red" size="2"><B>Loading ...</B></font></center>
+            </apex:outputPanel>
+                                
+            <!-- Scheduled Jobs section -->
+            <apex:pageBlockSection title="Scheduled Jobs" columns="1">
+                
+                <apex:outputText value="Select scheduled job(s) to abort:" style="font-weight:bold;"/>
+                
+                <apex:pageBlockTable value="{!scheduledJobsList}" var="job">
+                    <apex:column width="40px" >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox onclick="toggleSelectAll(this, 'schJobCheckbox')"/>
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!job.checked}" id="schJobCheckbox"/>
+                    </apex:column> 
+                     
+                    <apex:column headerValue="Job Id">
+                        <apex:outputText value="{!job.jobId}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="State" >
+                        <apex:outputText value="{!job.state}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Next Fire Time" >
+                        <apex:outputText value="{!job.nextFireTime}"/>
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+                <apex:outputText value="No records found !" rendered="{!if(schJobsCount == 0 && areComponentsRetrieved, true, false)}"/>
+                                
+            </apex:pageBlockSection>
+            
+            <!-- Remote site settings section -->
+            <apex:pageBlockSection title="Remote Site Settings" columns="1" id="remoteSiteSettingsSection">
+                
+                <apex:outputText value="Select remote site setting(s) to deactivate:" style="font-weight:bold;"/>
+                
+                <apex:pageBlockTable value="{!remoteSiteSettingsList}" var="site">
+                    <apex:column width="40px" >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox onclick="toggleSelectAll(this, 'remoteSiteCheckbox')"/>
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!site.checked}" id="remoteSiteCheckbox"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Remote Site Name">
+                        <apex:outputText value="{!site.name}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Url">
+                        <apex:outputText value="{!site.url}"/>
+                    </apex:column>
+
+                </apex:pageBlockTable>
+                
+                <apex:outputText value="No records found !" rendered="{!if(rssCount == 0 && areComponentsRetrieved, true, false)}"/>
+                                
+            </apex:pageBlockSection>
+            
+            <apex:outputPanel rendered="{!NOT(areComponentsRetrieved)}">
+                <center><img src="/img/loading.gif"/> <font color="red" size="2"><B>Loading ...</B></font></center>
+            </apex:outputPanel>
+            
+        </apex:pageBlock>
+        
+    </apex:form>
+    
+    <script>
+        
+        // This function is used to toggle Select All/Deselect All
+        function toggleSelectAll(field, id) {
+            var checkboxes = document.getElementsByTagName("input");
+            for(var i=0; i<checkboxes.length; i++) {
+                if(checkboxes[i].id.indexOf(id) != -1) {
+                    checkboxes[i].checked = field.checked;
+                }
+            }
+        }
+        
+        loadPIIMaster();
+        
+    </script>
+
+</apex:page>

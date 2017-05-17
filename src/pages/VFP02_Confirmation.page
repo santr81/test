@@ -1,0 +1,118 @@
+<!-- 
+        CREATED BY                  CREATED DATE        DESCRIRIPTION
+        Ranjeet Singh Chouhan       01/31/2013          Confirmation page, this page displays all the components that the user has selected in main page to perform post refresh
+                                                        tasks and asks for user confirmation
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                       
+        UPDATED BY                  UPDATED DATE        DESCRIPTION
+        
+-->
+
+<apex:page controller="VFC01_Post_Refresh_Tasks" tabStyle="Account" extensions="PIICaptureControllerMerge">
+    
+    <apex:form id="form">
+        <!-- Page Messages -->
+        <apex:pageMessage severity="warning" strength="3" rendered="{!isProductionOrg}" 
+            summary="We've noticed that you are running this tool in a production organization. 
+            This tool is meant to be used in a sandbox organization. 
+            Please be aware that executing the post sandbox refresh tasks will modify (mask) the email addresses stored in the standard and custom objects, abort scheduled jobs and deactivate remote site settings. 
+            Click on the 'Confirm' button only if you are sure that you want to perform post sandbox refresh tasks in your production environment." />
+            
+        <apex:pageMessages id="messages"/>
+        <apex:actionFunction name="loadPIIMaster"  action="{!loadPiimaster}" reRender="piidata" status="Loading"/><br/>
+        
+        <apex:actionStatus id="Loading">
+            <apex:facet name="start">
+                <apex:outputPanel >
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: lightgray;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 30% 50%">
+                    <img src="/img/loading32.gif" width="25" height="25" />
+                    <apex:outputLabel value="Loading..."/>
+                </div>  
+                </apex:outputPanel>            
+            </apex:facet>
+        </apex:actionStatus>
+        
+        <apex:pageBlock title="Post Sandbox Refresh Tasks Automation">
+            <!-- Page buttons -->
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="Confirm" action="{!schedulePostRefreshTasks}"/>
+                <apex:commandButton value="Cancel" action="{!cancelPostRefreshTasks}" />
+            </apex:pageBlockButtons>
+            
+            <apex:outputText value="You have choosen to perform following operations, kindly confirm by pressing the 'Confirm' button at the bottom of the page." style="font-weight:bold;"/>
+            <br/><br/>
+            
+            <!-- Email Address section -->
+            <apex:pageBlockSection title="PII Data masking" columns="1" id="piidata">
+                
+                <apex:pageBlockTable value="{!piimasterlist}" var="piidata">
+                  <apex:column value="{!piidata.Object_API_Name__c}"/> 
+                  <apex:column value="{!piidata.Field_Names__c}"/>           
+                  <apex:column value="{!piidata.PreferredDummyText__c}"/>  
+                  <!--<apex:column value="{!piidata.Status__c}"/>  
+                  <apex:column value="{!piidata.Exception__c}"/> 
+                  <apex:column >
+                      <apex:commandButton value="Update" action="{!doUpdate}" reRender="poller,blocktable,msgs"  status="Loading">
+                          <apex:param id="Objectapiname" name="Objectapiname" value="{!piidata.Object_API_Name__c}"/>
+                      </apex:commandButton>
+                  </apex:column> -->
+              </apex:pageBlockTable>
+                
+            <!--    <apex:outputPanel >
+                    <apex:selectRadio value="{!replaceOrSuffix}" disabled="true">
+                        <apex:selectOption itemValue="suffix" itemLabel="Suffix all email addresses with" />
+                        <apex:selectOption itemValue="replace" itemLabel="Replace all email addresses with" />
+                    </apex:selectRadio>
+                    <apex:outputText value="{!emailAddressSuffix}"/>
+                    
+                </apex:outputPanel> -->
+
+            </apex:pageBlockSection>
+            
+            <!-- Scheduled Jobs section -->
+            <apex:pageBlockSection title="Abort Scheduled Jobs" columns="1">
+                
+                <apex:pageBlockTable value="{!scheduledJobsList}" var="job"> 
+                     
+                    <apex:column headerValue="Job Id" rendered="{!job.checked}">
+                        <apex:outputText value="{!job.jobId}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="State" rendered="{!job.checked}">
+                        <apex:outputText value="{!job.state}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Next Fire Time" rendered="{!job.checked}">
+                        <apex:outputText value="{!job.nextFireTime}"/>
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+            </apex:pageBlockSection>
+            
+            <!-- Remote site settings section -->
+            <apex:pageBlockSection title="Deactivate Remote Site Settings" columns="1">
+                
+                <apex:pageBlockTable value="{!remoteSiteSettingsList}" var="site">
+                    
+                    <apex:column headerValue="Remote Site Name" rendered="{!site.checked}">
+                        <apex:outputText value="{!site.name}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Url" rendered="{!site.checked}">
+                        <apex:outputText value="{!site.url}"/>
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+                
+            </apex:pageBlockSection>
+
+        </apex:pageBlock>
+    </apex:form>
+    <script>
+    loadPIIMaster();
+        
+    </script>
+</apex:page>

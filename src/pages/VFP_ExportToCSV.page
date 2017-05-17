@@ -1,0 +1,9 @@
+<!-- Author       : Accenture IDC Team -->
+<!-- Created Date : 15/10/2013 -->
+<!-- Description  : This VisualForce Page is used to export the data in a list in the form of an excel -->
+
+<apex:page controller="VFC_ExceptionSearch" cache="true" readOnly="true" contentType="application/vnd.ms-excel#ExceptionList.csv" id="csvPage">{!header}
+<apex:repeat value="{!exportExceptions}" var="excLst" id="csvVals">
+       {!excLst.Name},{!excLst.ExceptionType__c},{!excLst.ExceptionCode__c},{!excLst.ClassName__c},{!excLst.MethodName__c},{!excLst.ApexTrigger__c},{!excLst.isHandled__c},{!excLst.NumberOfTimesOccured__c},{!excLst.ConvertedToDefect__c},{!excLst.Severity__c},{!excLst.ContextUser__c}
+  </apex:repeat>
+</apex:page>
